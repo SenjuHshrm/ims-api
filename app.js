@@ -22,13 +22,13 @@ mongoose.connection
           .on('error', () => {
             console.log('Error')
           })
-User.findOne({ username: 'admin' }, (err, user) => {
+User.findOne({ username: process.env.SUPER_ADMIN_USERNAME }, (err, user) => {
   if(user) {
     return null;
   }
   let usr = new User({
-    username: 'admin',
-    password: bcrypt.hashSync('1234', 10),
+    username: process.env.SUPER_ADMIN_USERNAME,
+    password: bcrypt.hashSync(process.env.SUPER_ADMIN_PASSWORD, 10),
     type: 'superAdmin',
     fName: '',
     mName: '',
@@ -40,21 +40,29 @@ User.findOne({ username: 'admin' }, (err, user) => {
 
 })
 
-
 const LoginCtrl = require('./controllers/login.js')
 const RegCtrl = require('./controllers/register.js')
+const UpdCtrl = require('./controllers/update-acct.js')
+const DefCtrl = require('./controllers/get-defs.js')
+const ItemCtrl = require('./controllers/items.js')
 
 app.set('port', process.env.PORT)
-app.use(bodyParser.json())
+app.use(bodyParser.json({ limit: '50mb' }))
 app.use(logger('dev'))
 app.use(cors())
 app.use(express.static('app'))
 app
+
+  .get('/api/get-def', DefCtrl.getDef )
+  .post('/api/login', LoginCtrl.authUser)
+  .post('/api/update', UpdCtrl.update)
+  .post('/api/register', RegCtrl.addUser)
+  .post('/api/add-item', ItemCtrl.add)
+  .get('/api/test-check-auth', RegCtrl.testAuth)
+  .get('/api/search-item/:prod/:cat', ItemCtrl.search)
   .get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, '/app/index.html'))
   })
-  .post('/api/login', LoginCtrl.authUser)
-  .post('/api/register', RegCtrl.addUser)
 
 app.listen(app.get('port'), () => {
   console.log('App running at port %d', app.get('port'))

@@ -19,14 +19,22 @@ userSchema.methods.comparePass = function comparePass(inp) {
 }
 
 userSchema.methods.generateJWT = function generateJWT() {
-  let name = (this.mName != '') ? this.fName + ' ' + this.mName.charAt(0) + '. ' + this.lName : this.fName + ' ' + this.lName;
   return jwt.sign(
     {
+      type: this.type,
       username: this.username,
-      name: name
+      fName: this.fName,
+      mName: this.mName,
+      lName: this.lName,
+      addr: this.addr,
+      contact: this.contact
     },
     process.env.JWT_SECRET
   )
+}
+
+userSchema.methods.checkAuth = function checkAuth(token) {
+  return jwt.verify(token, process.env.JWT_SECRET)
 }
 
 var User = mongoose.model('User', userSchema)
