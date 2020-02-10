@@ -9,7 +9,8 @@ var itemSchema = new Schema({
   price: String,
   desc: Array,
   img: String,
-  itemCount: Number
+  itemCount: Number,
+  isAvailable: Boolean
 })
 
 var Item = mongoose.model('item', itemSchema)
