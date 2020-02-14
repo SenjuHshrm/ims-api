@@ -3,6 +3,7 @@ const Log = require('../models/Logs')
 const fs = require('fs')
 const _ = require('lodash')
 const moment = require('moment')
+const formatCurr = require('../utils/currency')
 
 exports.search = (req, res, next) => {
   let prod = req.params.prod,
@@ -18,7 +19,7 @@ exports.search = (req, res, next) => {
 }
 
 exports.searchByName = (req, res, next) => {
-  Item.find({ name: req.params.name }, (err, item) => {
+  Item.find({ name: { $regex: req.params.name, $options: 'i' } }, (err, item) => {
     if(err) { return res.json({ res: 'ER' }) }
     _.forEach(item, arr => {
       let img = fs.readFileSync(arr.img)
@@ -29,6 +30,9 @@ exports.searchByName = (req, res, next) => {
 }
 
 exports.add = (req, res, next) => {
+  let tmp = req.body.price.split(',')
+  let incm = ((req.body.itemCount * parseFloat(tmp.join(''))).toFixed(2)).toString()
+  console.log(incm)
   let name = req.body.name.replace(/\s/g, '_')
   let filename = './img/' + name + req.body.format
   fs.writeFile(filename, req.body.img, 'base64', (err) => {
@@ -52,7 +56,7 @@ exports.add = (req, res, next) => {
       name: req.body.name,
       received: req.body.itemCount,
       sold: 0,
-      income: '0',
+      income: formatCurr.formatCurrency(incm),
       encoder: req.body.encoder
     })
     log.save()
@@ -92,17 +96,6 @@ exports.updateItem = (req, res, next) => {
         item.itemCount = req.body.xobj.itemCount
         item.isAvailable = (req.body.xobj.itemCount > 0) ? true : false
         item.save()
-        let log = new Log({
-          type: 'in',
-          prod: req.body.xobj.prod,
-          cat: req.body.xobj.cat,
-          name: req.body.xobj.name,
-          received: req.body.xobj.itemCount,
-          sold: 0,
-          income: '0',
-          encoder: req.body.encoder
-        })
-        log.save()
         return res.json({ res: true })
       }
     }
@@ -128,5 +121,37 @@ exports.addSold = (req, res, next) => {
     item.save()
     log.save()
     return res.json({ res: true })
+  })
+}
+
+exports.addRec = (req, res, next) => {
+  Item.findOne({ _id: req.body.id }, (err, item) => {
+    if(err) { return res.json({ res: 'ER' }) }
+    item.itemCount = req.body.remItem,
+    item.isAvailable = (req.body.remItem > 0) ? true : false
+    let log = new Log({
+      type: 'in',
+      prod: item.product,
+      cat: item.category,
+      name: item.name,
+      received: 0,
+      sold: req.body.amt,
+      income: req.body.totalPrc,
+      encoder: req.body.encoder
+    })
+    item.save()
+    log.save()
+    return res.json({ res: true })
+  })
+}
+
+exports.allItems = (req, res, next) => {
+  Item.find({}, (err, item) => {
+    if(err) { return res.json({ res: 'ER' })}
+    _.forEach(item, arr => {
+      let img = fs.readFileSync(arr.img)
+      arr.img = new Buffer.from(img).toString('base64')
+    })
+    return res.json(item)
   })
 }

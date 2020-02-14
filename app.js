@@ -62,10 +62,13 @@ app
   .post('/api/update-item', ItemCtrl.updateItem)
   .post('/api/set-availability', ItemCtrl.updateAvail)
   .post('/api/add-sold', ItemCtrl.addSold)
+  .post('/api/add-rec', ItemCtrl.addRec)
   .post('/api/gen-report', LogCtrl.search)
+  .get('/api/get-logs', LogCtrl.getAll)
   .get('/api/search-item/name/:name', ItemCtrl.searchByName)
   .get('/api/test-check-auth', RegCtrl.testAuth)
   .get('/api/search-item/:prod/:cat', ItemCtrl.search)
+  .get('/api/all-prod', ItemCtrl.allItems)
   .get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, '/app/index.html'))
   })
