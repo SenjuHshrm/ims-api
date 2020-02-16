@@ -10,6 +10,7 @@ var itemSchema = new Schema({
   desc: Array,
   img: String,
   itemCount: Number,
+  featureToSite: Boolean,
   isAvailable: Boolean
 })
 

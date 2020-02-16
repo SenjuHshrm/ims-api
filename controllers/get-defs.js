@@ -1,8 +1,7 @@
 const Default = require('../models/Default')
 
 exports.getDef = (req, res, next) => {
-  Default.find({}, (err, def) => {
-    if(err) { return res.json({ res: 'ER' }) }
-    return res.json({ res: def[0] })
+  Default.find({}).then(def => {
+    return res.json(def[0])
   })
 }
