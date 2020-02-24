@@ -19,9 +19,10 @@ mongoose.connection
           .on('open', () => {
             console.log('Connected')
           })
-          .on('error', () => {
-            console.log('Error')
+          .on('error', (err) => {
+            console.log(err)
           })
+
 User.findOne({ username: process.env.SUPER_ADMIN_USERNAME }, (err, user) => {
   if(user) {
     return null;
