@@ -7,45 +7,54 @@ const formatCurr = require('../utils/currency')
 
 exports.search = (req, res, next) => {
   Item.find(req.body).then((item) => {
-    _.forEach(item, arr => {
-      let img = fs.readFileSync(arr.img)
-      arr.img = new Buffer.from(img).toString('base64')
-    })
     return res.json(item)
   })
 }
 
 exports.searchByName = (req, res, next) => {
-  Item.find({ name: { $regex: req.params.name, $options: 'i' } }, (err, item) => {
-    if(err) { return res.json({ res: 'ER' }) }
-    _.forEach(item, arr => {
-      let img = fs.readFileSync(arr.img)
-      arr.img = new Buffer.from(img).toString('base64')
+  Item.find({ name: { $regex: req.params.name, $options: 'i' } })
+    .then((item) => {
+        return res.json({ res: item })
     })
-    return res.json({ res: item })
-  })
+    .catch(err => {
+      return res.json({ res: 'ER' })
+    })
 }
 
 exports.add = (req, res, next) => {
-  let name = req.body.name.replace(/\s/g, '_')
-  let filename = './img/' + name + req.body.format
-  fs.writeFile(filename, req.body.img, 'base64', (err) => {
-    if(err) { return res.json({ res: false }) }
-    let itm = new Item({
-      product: req.body.prod,
-      category: req.body.cat,
-      name: req.body.name,
-      color: req.body.color,
-      price: req.body.price,
-      desc: req.body.desc,
-      img: filename,
-      itemCount: 0,
-      featureToSite: false,
-      isAvailable: false
-    })
-    itm.save()
-    return res.json({ res: true })
+  // let name = req.body.name.replace(/\s/g, '_')
+  // let filename = './img/' + name + req.body.format
+  // fs.writeFile(filename, req.body.img, 'base64', (err) => {
+  //   if(err) { return res.json({ res: false }) }
+  //   let itm = new Item({
+  //     product: req.body.prod,
+  //     category: req.body.cat,
+  //     name: req.body.name,
+  //     color: req.body.color,
+  //     price: req.body.price,
+  //     desc: req.body.desc,
+  //     img: filename,
+  //     itemCount: 0,
+  //     featureToSite: false,
+  //     isAvailable: false
+  //   })
+  //   itm.save()
+  //   return res.json({ res: true })
+  // })
+  let itm = new Item({
+    product: req.body.prod,
+    category: req.body.cat,
+    name: req.body.name,
+    color: req.body.color,
+    price: req.body.price,
+    desc: req.body.desc,
+    img: req.body.img,
+    itemCount: 0,
+    featureToSite: false,
+    isAvailable: false
   })
+  itm.save()
+  return res.json({ res: true })
 }
 
 exports.updateAvail = (req, res, next) => {
@@ -85,19 +94,19 @@ exports.updateItem = (req, res, next) => {
   Item.findOne({ _id: req.body.id }).then((item) => {
     if(item != null) {
       let name = '', filename = '';
-      if(req.body.xobj.format != 'nochange') {
-        fs.unlinkSync(item.img)
-        name = req.body.xobj.name.replace(/\s/g, '_')
-        filename = './img/' + name + req.body.xobj.format
-        fs.writeFileSync(filename, req.body.xobj.img, 'base64')
-      }
+      // if(req.body.xobj.format != 'nochange') {
+      //   fs.unlinkSync(item.img)
+      //   name = req.body.xobj.name.replace(/\s/g, '_')
+      //   filename = './img/' + name + req.body.xobj.format
+      //   fs.writeFileSync(filename, req.body.xobj.img, 'base64')
+      // }
       item.product = req.body.xobj.prod
       item.category = req.body.xobj.cat
       item.name = req.body.xobj.name
       item.color = req.body.xobj.color
       item.price = req.body.xobj.price
       item.desc = req.body.xobj.desc
-      item.img = (req.body.xobj.format == 'nochange') ? item.img : filename
+      item.img = req.body.xobj.img
       item.save()
       return res.json({ res: true })
     }
@@ -148,10 +157,10 @@ exports.addRec = (req, res, next) => {
 exports.allItems = (req, res, next) => {
   Item.find({})
     .then(item => {
-      _.forEach(item, arr => {
-        let img = fs.readFileSync(arr.img)
-        arr.img = new Buffer.from(img).toString('base64')
-      })
+      // _.forEach(item, arr => {
+      //   let img = fs.readFileSync(arr.img)
+      //   arr.img = new Buffer.from(img).toString('base64')
+      // })
       return res.json(item)
     })
     .catch(err => {
@@ -160,11 +169,15 @@ exports.allItems = (req, res, next) => {
 }
 
 exports.getFeat = (req, res, next) => {
-  Item.find({ featureToSite: true }).then((item) => {
-    _.forEach(item, arr => {
-      let img = fs.readFileSync(arr.img)
-      arr.img = new Buffer.from(img).toString('base64')
+  Item.find({ featureToSite: true })
+    .then((item) => {
+      // _.forEach(item, arr => {
+      //   let img = fs.readFileSync(arr.img)
+      //   arr.img = new Buffer.from(img).toString('base64')
+      // })
+      return res.json(item)
     })
-    return res.json(item)
-  })
+    .catch(err => {
+      return res.json({ res: 'ER' })
+    })
 }
