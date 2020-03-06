@@ -11,8 +11,9 @@ var userSchema = new Schema({
   mName: String,
   lName: String,
   addr: String,
-  contact: String
-})
+  contact: String,
+  activated: Boolean
+}, { timestamps: true })
 
 userSchema.methods.comparePass = function comparePass(inp) {
   return bcrypt.compareSync(inp, this.password)
@@ -34,7 +35,28 @@ userSchema.methods.generateJWT = function generateJWT() {
 }
 
 userSchema.methods.checkAuth = function checkAuth(token) {
-  return jwt.verify(token, process.env.JWT_SECRET)
+  try {
+    let decoded = jwt.verify(token, process.env.JWT_SECRET)
+    return User.findOne({ username: decoded.username }).then((user) => {
+      if(user) {
+        return user;
+      } else {
+        return 'INVALID_USER'
+      }
+    })
+  } catch(e) {
+    return 'ER_TOKEN'
+  }
+}
+
+userSchema.methods.superAdminAuth = function superAdminAuth(token) {
+  let resp = jwt.verify(token, process.env.JWT_SECRET)
+  if(!resp) { return false }
+  if(resp.type == 'superAdmin') {
+    return true;
+  } else {
+    return false
+  }
 }
 
 var User = mongoose.model('User', userSchema)

@@ -22,25 +22,6 @@ exports.searchByName = (req, res, next) => {
 }
 
 exports.add = (req, res, next) => {
-  // let name = req.body.name.replace(/\s/g, '_')
-  // let filename = './img/' + name + req.body.format
-  // fs.writeFile(filename, req.body.img, 'base64', (err) => {
-  //   if(err) { return res.json({ res: false }) }
-  //   let itm = new Item({
-  //     product: req.body.prod,
-  //     category: req.body.cat,
-  //     name: req.body.name,
-  //     color: req.body.color,
-  //     price: req.body.price,
-  //     desc: req.body.desc,
-  //     img: filename,
-  //     itemCount: 0,
-  //     featureToSite: false,
-  //     isAvailable: false
-  //   })
-  //   itm.save()
-  //   return res.json({ res: true })
-  // })
   let itm = new Item({
     product: req.body.prod,
     category: req.body.cat,
@@ -75,14 +56,14 @@ exports.updateToFeature = (req, res, next) => {
     Item.findOne({ _id: req.body.id }).then((itm) => {
       if(req.body.feature === true) {
         if(ft.length < 4) {
-          itm.featureToSite = !itm.featureToSite
+          itm.featureToSite = req.body.feature
           itm.save()
           return res.json({ res: true })
         } else if(ft.length >= 4) {
           return res.json({ res: false })
         }
       } else {
-        itm.featureToSite = !itm.featureToSite
+        itm.featureToSite = req.body.feature
         itm.save()
         return res.json({ res: true })
       }

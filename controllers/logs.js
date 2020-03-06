@@ -1,4 +1,5 @@
 const Log = require('../models/Logs')
+const User = require('../models/User')
 const moment = require('moment')
 const pdfMake = require('../pdfmake/pdfmake')
 const vfsFonts = require('../pdfmake/vfs_fonts')
@@ -8,10 +9,31 @@ const formatCurr = require('../utils/currency')
 pdfMake.vfs = vfsFonts.pdfMake.vfs
 
 exports.getAll = (req, res, next) => {
-  Log.find({}, (err, log) => {
-    if(err) { return res.json({ res: 'ER' }) }
-    return res.json(log)
-  })
+  if(req.headers.hasOwnProperty('authorization')) {
+    let token = req.headers.authorization.split(' ')
+    let usr = new User
+    let auth = usr.checkAuth(token[1])
+    if(auth == 'ER_TOKEN') {
+      return res.json({ res: 'InvToken' })
+    } else {
+      auth.then(dec => {
+        if(typeof dec != 'string') {
+          if(dec.type == 'superAdmin' || dec.type == 'admin') {
+            Log.find({}, (err, log) => {
+              if(err) { return res.json({ res: 'ER' }) }
+              return res.json(log)
+            })
+          } else {
+            return res.json({ res: 'AUTH_ERR' })
+          }
+        } else {
+          return res.json({ res: 'InvUser' })
+        }
+      })
+    }
+  } else {
+    return res.json({ res: 'NoToken' })
+  }
 }
 
 exports.search = (req, res, next) => {
@@ -20,7 +42,8 @@ exports.search = (req, res, next) => {
     $lt: new Date(new Date(req.body.dateTo).setHours(23,59,59))
   }, type: req.body.type }, (err, resp) => {
     if(err) { return res.json({ errors: err }) }
-    let title = (req.body.type == 'in') ? 'Inbound sales report' : 'Outbound sales report',
+    let rep = (req.body.type == 'in') ? 'Inbound sales report' : 'Outbound sales report',
+      title = 'Green Planet Bikeshop',
       dateFrom = moment(req.body.dateFrom).format('MMMM DD, YYYY'),
       dateTo = moment(req.body.dateTo).format('MMMM DD, YYYY'),
       totalItem = 0,
@@ -74,6 +97,7 @@ exports.search = (req, res, next) => {
     let docDef = {
       header: { text: title, style: 'header' },
       content: [
+        { text: rep, style: 'subhd' },
         {
           text: 'From: ' + dateFrom + '\nTo: ' + dateTo + '\n\n'
         },
@@ -92,49 +116,71 @@ exports.search = (req, res, next) => {
           bold: true,
           alignment: 'center',
           margin: [0, 10, 0, 20]
+        },
+        subhd: {
+          fontSize: 18,
+          bold: false,
+          alignment: 'center',
+          margin: [0, 10, 0, 20]
         }
       }
     }
     const pdfDoc = pdfMake.createPdf(docDef)
     pdfDoc.getBase64((data) => {
-      // res.writeHead(200, {
-      //   'Content-Type': 'application/pdf',
-      //   'Content-Disposition': 'attachment;filename="filename.pdf"'
-      // })
-      //let file = new Buffer.from(data).toString('base64')
-      res.json({ res: data })
+      let filename = title + ' (' + dateFrom + ' - ' + dateTo + ').pdf';
+      res.json({ res: data, filename: filename })
     })
 
   })
 }
 
 exports.getMonthlyIncome = (req, res, next) => {
-  Log.find({ type: 'out' }).then((log) => {
-    let obj = JSON.parse(JSON.stringify(log))
-    let month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    let resp = {
-      Jan: 0,
-      Feb: 0,
-      Mar: 0,
-      Apr: 0,
-      May: 0,
-      Jun: 0,
-      Jul: 0,
-      Aug: 0,
-      Sep: 0,
-      Oct: 0,
-      Nov: 0,
-      Dec: 0
-    }
-    let currYr = new Date().getFullYear('YYYY')
-    console.log(obj)
-    for(let i = 0; i < 12; i++) {
-      _.forEach(obj, arr => {
-        if(new Date(arr.createdAt).getMonth() == i && new Date(arr.createdAt).getFullYear() == currYr) {
-          resp[month[i]] += parseFloat(arr.income)
+  if(req.headers.hasOwnProperty('authorization')) {
+    let token = req.headers.authorization.split(' ')
+    let usr = new User
+    let auth = usr.checkAuth(token[1])
+    if(auth == 'ER_TOKEN') {
+      return res.json({ res: 'InvToken' })
+    } else {
+      auth.then(dec => {
+        if(typeof dec != 'string') {
+          if(dec.type == 'superAdmin' || dec.type == 'admin') {
+            Log.find({ type: 'out' }).then((log) => {
+              let obj = JSON.parse(JSON.stringify(log))
+              let month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+              let resp = {
+                Jan: 0,
+                Feb: 0,
+                Mar: 0,
+                Apr: 0,
+                May: 0,
+                Jun: 0,
+                Jul: 0,
+                Aug: 0,
+                Sep: 0,
+                Oct: 0,
+                Nov: 0,
+                Dec: 0
+              }
+              let currYr = new Date().getFullYear('YYYY')
+              for(let i = 0; i < 12; i++) {
+                _.forEach(obj, arr => {
+                  if(new Date(arr.createdAt).getMonth() == i && new Date(arr.createdAt).getFullYear() == currYr) {
+                    resp[month[i]] += parseFloat(arr.income)
+                  }
+                })
+              }
+              return res.json(resp)
+            })
+          } else {
+            return res.json({ res: 'AUTH_ERR' })
+          }
+        } else {
+          return res.json({ res: 'InvUser' })
         }
       })
     }
-    return res.json(resp)
-  })
+  } else {
+    return res.json({ res: 'NoToken' })
+  }
 }
