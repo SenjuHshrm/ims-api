@@ -48,6 +48,7 @@ const UpdCtrl = require('./controllers/update-acct.js')
 const DefCtrl = require('./controllers/get-defs.js')
 const ItemCtrl = require('./controllers/items.js')
 const LogCtrl = require('./controllers/logs.js')
+const GallCtrl = require('./controllers/gallery.js')
 
 app.set('port', process.env.PORT)
 app.use(bodyParser.json({ limit: '50mb' }))
@@ -67,6 +68,7 @@ app
   .post('/api/gen-report', LogCtrl.search) //suAdmin, admin, encoder
   .post('/api/search-item', ItemCtrl.search) //suAdmin, admin, encoder
   .post('/api/acct-activation', LoginCtrl.actvt) //suAdmin
+  .post('/api/add-image/gallery', GallCtrl.addImg)
   .get('/api/get-logs', LogCtrl.getAll) //suAdmin, admin
   .get('/api/get-income-mon', LogCtrl.getMonthlyIncome) //suAdmin, admin
   .get('/api/search-item/name/:name', ItemCtrl.searchByName) //suAdmin, admin, encoder

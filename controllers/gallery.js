@@ -1,7 +1,6 @@
-const Default = require('../models/Default')
+const Gallery = '../models/Gallery'
 const User = require('../models/User')
-
-exports.getDef = (req, res, next) => {
+exports.addImg = (req, res, next) => {
   if(req.headers.hasOwnProperty('authorization')) {
     let token = req.headers.authorization.split(' ')
     let usr = new User
@@ -12,9 +11,12 @@ exports.getDef = (req, res, next) => {
       auth.then(dec => {
         if(typeof dec != 'string') {
           if(dec.activated == true) {
-            Default.find({}).then(def => {
-              return res.json(def[0])
+            let gall = new Gallery({
+              image: req.body.image,
+              uploader: dec.username
             })
+            gall.save()
+            return res.json({ res: true })
           } else {
             return res.json({ res: 'NACT' })
           }
