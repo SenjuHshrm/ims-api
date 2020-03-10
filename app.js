@@ -69,12 +69,15 @@ app
   .post('/api/search-item', ItemCtrl.search) //suAdmin, admin, encoder
   .post('/api/acct-activation', LoginCtrl.actvt) //suAdmin
   .post('/api/add-image/gallery', GallCtrl.addImg)
+  .post('/api/delete-item', ItemCtrl.delItem)
+  .post('/api/visitor-session', LogCtrl.genId)
   .get('/api/get-logs', LogCtrl.getAll) //suAdmin, admin
   .get('/api/get-income-mon', LogCtrl.getMonthlyIncome) //suAdmin, admin
   .get('/api/search-item/name/:name', ItemCtrl.searchByName) //suAdmin, admin, encoder
   .get('/api/get-feat', ItemCtrl.getFeat)
   .get('/api/get-users', LoginCtrl.getUsers) //suAdmin
   .get('/api/all-prod', ItemCtrl.allItems)
+  .get('/api/get/visitors', LogCtrl.getVisitors)
   .get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, '/app/index.html'))
   })

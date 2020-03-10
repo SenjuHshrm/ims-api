@@ -1,5 +1,6 @@
 const Log = require('../models/Logs')
 const User = require('../models/User')
+const Visitor = require('../models/Visitor')
 const moment = require('moment')
 const pdfMake = require('../pdfmake/pdfmake')
 const vfsFonts = require('../pdfmake/vfs_fonts')
@@ -145,10 +146,24 @@ exports.getMonthlyIncome = (req, res, next) => {
       auth.then(dec => {
         if(typeof dec != 'string') {
           if(dec.type == 'superAdmin' || dec.type == 'admin') {
-            Log.find({ type: 'out' }).then((log) => {
+            Log.find({}).then((log) => {
               let obj = JSON.parse(JSON.stringify(log))
               let month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-              let resp = {
+              let respIncm = {
+                Jan: 0,
+                Feb: 0,
+                Mar: 0,
+                Apr: 0,
+                May: 0,
+                Jun: 0,
+                Jul: 0,
+                Aug: 0,
+                Sep: 0,
+                Oct: 0,
+                Nov: 0,
+                Dec: 0
+              }
+              let respLoss = {
                 Jan: 0,
                 Feb: 0,
                 Mar: 0,
@@ -166,11 +181,22 @@ exports.getMonthlyIncome = (req, res, next) => {
               for(let i = 0; i < 12; i++) {
                 _.forEach(obj, arr => {
                   if(new Date(arr.createdAt).getMonth() == i && new Date(arr.createdAt).getFullYear() == currYr) {
-                    resp[month[i]] += parseFloat(arr.income)
+                    switch(arr.type) {
+                      case 'out':
+                        respIncm[month[i]] += parseFloat(arr.income)
+                        break;
+                      case 'in':
+                        respLoss[month[i]] += parseFloat(arr.income)
+                        break;
+                    }
                   }
                 })
               }
-              return res.json(resp)
+              let response = {
+                respIncm: respIncm,
+                respLoss: respLoss
+              }
+              return res.json(response)
             })
           } else {
             return res.json({ res: 'AUTH_ERR' })
@@ -183,4 +209,20 @@ exports.getMonthlyIncome = (req, res, next) => {
   } else {
     return res.json({ res: 'NoToken' })
   }
+}
+
+exports.genId = (req, res, next) => {
+  let vst = new Visitor({
+    sessionId: req.body.sessId
+  })
+  vst.save()
+  return res.json(vst.genSessionId(req.body.sessId))
+}
+
+exports.getVisitors = (req, res, next) => {
+  Visitor.find({}).then(visitor => {
+    return res.json(visitor)
+  }).catch(err => {
+    return res.json(err)
+  })
 }

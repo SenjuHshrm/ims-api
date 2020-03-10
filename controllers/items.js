@@ -162,3 +162,9 @@ exports.getFeat = (req, res, next) => {
       return res.json({ res: 'ER' })
     })
 }
+
+exports.delItem = (req, res, next) => {
+  Item.deleteOne({ _id: req.body._id}).then(item => {
+    return res.json(true)
+  })
+}
