@@ -1,5 +1,15 @@
-const Gallery = '../models/Gallery'
+const Gallery = require('../models/Gallery')
 const User = require('../models/User')
+
+exports.getImg = (req, res, next) => {
+  Gallery.find({})
+    .then(gallery => {
+      return res.json(gallery)
+    }).catch(err => {
+      return res.json({ res: false })
+    })
+}
+
 exports.addImg = (req, res, next) => {
   if(req.headers.hasOwnProperty('authorization')) {
     let token = req.headers.authorization.split(' ')
@@ -11,12 +21,15 @@ exports.addImg = (req, res, next) => {
       auth.then(dec => {
         if(typeof dec != 'string') {
           if(dec.activated == true) {
-            let gall = new Gallery({
-              image: req.body.image,
-              uploader: dec.username
-            })
-            gall.save()
-            return res.json({ res: true })
+            let ln = req.body.img.length
+            for(let i = 0; i < ln; i++) {
+              let gall = new Gallery({
+                image: req.body.img[i],
+                uploader: (dec.mName == '') ? dec.fName + ' ' + dec.lName : dec.fName + ' ' + dec.mName.charAt(0) + '. ' + dec.lName
+              })
+              gall.save()
+            }
+            return res.json(true)
           } else {
             return res.json({ res: 'NACT' })
           }
@@ -28,4 +41,10 @@ exports.addImg = (req, res, next) => {
   } else {
     return res.json({ res: 'NoToken' })
   }
+}
+
+exports.deleteImg = (req, res, next) => {
+  Gallery.deleteOne({ _id: req.body._id }).then(gallery => {
+    return res.json(true)
+  })
 }

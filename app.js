@@ -68,7 +68,8 @@ app
   .post('/api/gen-report', LogCtrl.search) //suAdmin, admin, encoder
   .post('/api/search-item', ItemCtrl.search) //suAdmin, admin, encoder
   .post('/api/acct-activation', LoginCtrl.actvt) //suAdmin
-  .post('/api/add-image/gallery', GallCtrl.addImg)
+  .post('/api/add-photo', GallCtrl.addImg)
+  .post('/api/delete-photo', GallCtrl.deleteImg)
   .post('/api/delete-item', ItemCtrl.delItem)
   .post('/api/visitor-session', LogCtrl.genId)
   .get('/api/get-logs', LogCtrl.getAll) //suAdmin, admin
@@ -78,6 +79,7 @@ app
   .get('/api/get-users', LoginCtrl.getUsers) //suAdmin
   .get('/api/all-prod', ItemCtrl.allItems)
   .get('/api/get/visitors', LogCtrl.getVisitors)
+  .get('/api/get-photos', GallCtrl.getImg)
   .get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, '/app/index.html'))
   })
