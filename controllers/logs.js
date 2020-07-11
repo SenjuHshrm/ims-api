@@ -43,7 +43,7 @@ exports.search = (req, res, next) => {
     $lt: new Date(new Date(req.body.dateTo).setHours(23,59,59))
   }, type: req.body.type }, (err, resp) => {
     if(err) { return res.json({ errors: err }) }
-    let rep = (req.body.type == 'in') ? 'Inbound sales report' : 'Outbound sales report',
+    let rep = (req.body.type == 'in') ? 'Consolidation on Consumption' : 'Consolidation on Profit',
       title = 'Green Planet Bikeshop',
       dateFrom = moment(req.body.dateFrom).format('MMMM DD, YYYY'),
       dateTo = moment(req.body.dateTo).format('MMMM DD, YYYY'),
