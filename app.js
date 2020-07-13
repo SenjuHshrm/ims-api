@@ -1,4 +1,7 @@
 const express = require('express')
+const app = express()
+const http = require('http').Server(app)
+const io = require('socket.io')(http)
 const dotenv = require('dotenv')
 const logger = require('morgan')
 const mongoose = require('mongoose')
@@ -9,9 +12,9 @@ const bcrypt = require('bcryptjs')
 const path = require('path')
 const User = require('./models/User')
 
-const app = express()
-
 dotenv.config('.env')
+
+global.io = io
 
 mongoose.connect(process.env.MONGODB_URI, { useMongoClient: true })
 mongoose.Promise = bluebird
@@ -36,7 +39,8 @@ User.findOne({ username: process.env.SUPER_ADMIN_USERNAME }, (err, user) => {
     lName: '',
     addr: '',
     contact: '',
-    activated: true
+    activated: true,
+    hasOpenedNotif: true
   })
   usr.save()
 
@@ -55,6 +59,10 @@ app.use(bodyParser.json({ limit: '50mb' }))
 app.use(logger('dev'))
 app.use(cors())
 app.use(express.static('app'))
+// app.use(function(req, res, next) {
+//   req.io = io;
+//   next();
+// })
 app
   .get('/api/get-def', DefCtrl.getDef ) //suAdmin, admin, encoder
   .post('/api/login', LoginCtrl.authUser)
@@ -72,6 +80,8 @@ app
   .post('/api/delete-photo', GallCtrl.deleteImg)
   .post('/api/delete-item', ItemCtrl.delItem)
   .post('/api/visitor-session', LogCtrl.genId)
+  .post('/api/close-notif', LoginCtrl.notifOpen)
+  .post('/api/delete-notifs', LoginCtrl.delNotif)
   .get('/api/get-logs', LogCtrl.getAll) //suAdmin, admin
   .get('/api/get-income-mon', LogCtrl.getMonthlyIncome) //suAdmin, admin
   .get('/api/search-item/name/:name', ItemCtrl.searchByName) //suAdmin, admin, encoder
@@ -80,11 +90,16 @@ app
   .get('/api/all-prod', ItemCtrl.allItems)
   .get('/api/get/visitors', LogCtrl.getVisitors)
   .get('/api/get-photos', GallCtrl.getImg)
+  .get('/api/get-notifs/:username', LoginCtrl.getNotifs)
   .get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, '/app/index.html'))
   })
 
-app.listen(app.get('port'), () => {
+io.on('connection', socket => {
+  socket.emit('test event', 'Here is your f*cking data')
+})
+
+http.listen(app.get('port'), () => {
   console.log('App running at port %d', app.get('port'))
 })
 

@@ -1,5 +1,6 @@
 const Item = require('../models/Item')
 const Log = require('../models/Logs')
+const User = require('../models/User')
 const fs = require('fs')
 const _ = require('lodash')
 const moment = require('moment')
@@ -111,6 +112,17 @@ exports.addSold = (req, res, next) => {
     })
     item.save()
     log.save()
+    if(req.body.remItem < 6) {
+      let notifCont = {
+        title: item.name,
+        content: (req.body.remItem <= 5 && req.body.remItem > 0) ? 'Your item ' + item.name + ' now only have ' + req.body.remItem.toString() + ' in store.' : (req.body.remItem == 0) ? 'Your item is out of stock.' : undefined,
+        dateNotified: new Date()
+      }
+      User.updateMany({}, { $push: { notif: notifCont }, hasOpenedNotif: false}).then((err) => {
+        global.io.emit('Item', notifCont)
+      })
+    }
+
     return res.json({ res: true })
   })
 }

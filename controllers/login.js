@@ -80,3 +80,21 @@ exports.actvt = (req, res, next) => {
     return res.json({ res: 'NoToken' })
   }
 }
+
+exports.notifOpen = (req, res, next) => {
+  User.update({ username: req.body.username }, { hasOpenedNotif: true }).then(user => {
+    return res.json(true)
+  })
+}
+
+exports.getNotifs = (req, res, next) => {
+  User.findOne({ username: req.params.username }).then(user => {
+    return res.json(user.notif)
+  })
+}
+
+exports.delNotif = (req, res, next) => {
+  User.update({ username: req.body.username }, {  $set: { notif: [] } }).then(user => {
+    return res.json(true)
+  })
+}

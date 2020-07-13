@@ -12,7 +12,9 @@ var userSchema = new Schema({
   lName: String,
   addr: String,
   contact: String,
-  activated: Boolean
+  activated: Boolean,
+  hasOpenedNotif:Boolean,
+  notif: Array
 }, { timestamps: true })
 
 userSchema.methods.comparePass = function comparePass(inp) {
